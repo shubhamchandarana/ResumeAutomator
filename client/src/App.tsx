@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import Dashboard from "@/pages/dashboard";
 import CandidateUpload from "@/pages/candidate-upload";
+import Profile from "@/pages/profile";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -13,6 +15,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/upload" component={CandidateUpload} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

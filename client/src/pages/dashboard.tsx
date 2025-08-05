@@ -4,6 +4,7 @@ import DashboardStats from "@/components/dashboard-stats";
 import CandidateTable from "@/components/candidate-table";
 import JobSidebar from "@/components/job-sidebar";
 import UploadDialog from "@/components/upload-dialog";
+import { JobFormDialog } from "@/components/job-form-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -14,6 +15,7 @@ import {
 
 export default function Dashboard() {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [showJobDialog, setShowJobDialog] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -29,7 +31,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button 
                 className="flex items-center justify-center space-x-3 p-4 h-auto"
-                onClick={() => {/* TODO: Implement create job */}}
+                onClick={() => setShowJobDialog(true)}
                 data-testid="button-create-job"
               >
                 <Plus className="h-5 w-5" />
@@ -71,6 +73,11 @@ export default function Dashboard() {
       <UploadDialog 
         open={showUploadDialog} 
         onClose={() => setShowUploadDialog(false)} 
+      />
+      
+      <JobFormDialog 
+        open={showJobDialog} 
+        onClose={() => setShowJobDialog(false)} 
       />
     </div>
   );

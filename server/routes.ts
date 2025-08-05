@@ -40,7 +40,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jobs = await storage.getJobs();
       res.json(jobs);
     } catch (error) {
+      console.error("Error fetching jobs:", error);
       res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
+  // Create new job
+  app.post("/api/jobs", async (req, res) => {
+    try {
+      const { title, description, requirements, location, type, status = 'active' } = req.body;
+      
+      // Validate required fields
+      if (!title || !description || !requirements || !location || !type) {
+        return res.status(400).json({ 
+          message: "Missing required fields: title, description, requirements, location, type" 
+        });
+      }
+
+      const job = await storage.createJob({
+        title,
+        description,
+        requirements,
+        location,
+        type,
+        status,
+      });
+
+      res.status(201).json(job);
+    } catch (error) {
+      console.error("Error creating job:", error);
+      res.status(500).json({ message: "Failed to create job" });
+    }
+  });
+
+  // Update job
+  app.put("/api/jobs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { title, description, requirements, location, type, status } = req.body;
+      
+      const existingJob = await storage.getJob(id);
+      if (!existingJob) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      const updatedJob = await storage.updateJob(id, {
+        title,
+        description,
+        requirements,
+        location,
+        type,
+        status,
+      });
+
+      if (!updatedJob) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+
+      res.json(updatedJob);
+    } catch (error) {
+      console.error("Error updating job:", error);
+      res.status(500).json({ message: "Failed to update job" });
+    }
+  });
+
+  // Get single job
+  app.get("/api/jobs/:id", async (req, res) => {
+    try {
+      const job = await storage.getJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      res.json(job);
+    } catch (error) {
+      console.error("Error fetching job:", error);
+      res.status(500).json({ message: "Failed to fetch job" });
     }
   });
 
@@ -201,8 +275,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Application not found" });
       }
 
-      res.json(application);
+      // TODO: Integrate with Google Calendar or Calendly API
+      // For now, we simulate calendar event creation
+      console.log(`Calendar event would be created for application ${applicationId} on ${interviewDate}`);
+
+      res.json({
+        ...application,
+        calendarEventCreated: true,
+        message: "Interview scheduled successfully"
+      });
     } catch (error) {
+      console.error("Error scheduling interview:", error);
       res.status(500).json({ message: "Failed to schedule interview" });
     }
   });

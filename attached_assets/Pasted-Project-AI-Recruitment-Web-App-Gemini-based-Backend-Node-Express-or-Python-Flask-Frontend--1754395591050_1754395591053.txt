@@ -1,0 +1,52 @@
+Project: AI Recruitment Web App (Gemini-based)  
+Backend: Node/Express or Python Flask | Frontend: React with Material UI (MUI)  
+
+🔧 Issues to Fix:
+1. "Create New Job" form is not functioning.
+2. Resume scoring always returns 0 and candidate is auto-rejected, despite valid Gemini key.
+3. After clicking "Schedule" then "Send Mail," toast shows “Successfully sent” but emails are not delivered.
+4. Unable to edit active jobs.
+5. Candidate profile view does not open.
+6. Settings page does not open.
+7. Calendar integration isn’t scheduling interviews.
+
+✨ Requirements for the Fix:
+- Validate backend routes and database logic for job creation, editing, and active job toggling.
+- Confirm Gemini API call is correctly formatted:
+  • Ensure API key is loaded from env, correct model chosen, prompt template includes both JD & resume.
+  • Parse API response (match score) properly; handle cases where response.choices[0].message could be null :contentReference[oaicite:1]{index=1}.
+  • Add error handling if Gemini returns empty or freeze (some widely reported bug where about 10% requests fail with no response) :contentReference[oaicite:2]{index=2}.
+  • Use function-calling mode or structured responses to reliably get score, strengths, gaps :contentReference[oaicite:3]{index=3}.
+- Verify frontend-to-backend integration:
+  • Ensure clicking “Schedule” triggers backend `/schedule` endpoint.
+  • Confirm calendar API integration (Google Calendar / Calendly) is called, authenticated, and event is actually created.
+- Validate email sending logic:
+  • Ensure SMTP/SendGrid config is correct; verify backend logs the email call.
+  • Only show toast alert when backend acknowledges success—not just the frontend.
+- Fix MUI components:
+  • Ensure routing for Profile/settings pages is wired up.
+  • Ensure edit job dialog opens correctly via MUI dialog/modal logic.
+  • For Snackbar notifications: use MUI Snackbar or Notistack hook correctly so that async operations still trigger toast on completion :contentReference[oaicite:4]{index=4}.
+
+📦 Deliverables:
+- Corrected backend route handlers (`/jobs/new`, `/jobs/edit`, `/upload`, `/match`, `/schedule`, `/send-email`).
+- Fixed prompt template and parsing logic for Gemini API.
+- Updated frontend: “Create Job” form works, editing jobs works, profile/settings navigation works.
+- Email and calendar scheduling tested and confirmed (simulate events).
+- Use proper MUI components: Forms, DataGrid, Dialogs, Snackbar, Router.
+- Include comments in code to explain:
+  • How Gemini request/response is handled and potential freeze workaround.
+  • Why score was always zero before and how parsing fix prevents that.
+  • How scheduling request triggers calendar API and confirms event creation.
+
+---
+
+Please run tests:
+- Create a new job and ensure it's saved and editable.
+- Upload a realistic resume + JD and verify that Gemini returns non-zero score.
+- Test "Schedule → Send Mail": confirm email in logs and calendar event exists.
+- Navigate to profile and settings pages.
+- Use edit-job feature.
+
+Provide corrected frontend .jsx and backend .py/.js code with inline comments explaining the fixes.
+
