@@ -1,7 +1,7 @@
 import { useTheme } from "./theme-provider";
+import { NotificationDropdown } from "./notification-dropdown";
 import { Button } from "@/components/ui/button";
 import { 
-  Bell, 
   Sun, 
   Moon, 
   ChevronDown,
@@ -44,10 +44,7 @@ export default function NavigationHeader() {
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
             
-            <Button variant="ghost" size="icon" className="relative" data-testid="button-notifications">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </Button>
+            <NotificationDropdown />
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

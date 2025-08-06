@@ -3,7 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { analyzeResume } from "./services/gemini";
 import { sendInterviewInvite, sendRejectionEmail } from "./services/email";
-import { parseResume } from "./services/resume-parser";
+import { parseResumeFile, validateResumeContent } from "./services/resume-parser";
+import { getNotifications, getUnreadCount, markAsRead, markAllAsRead, createCandidateNotification } from "./services/notifications";
+import { generateCandidateReport, formatReportAsCSV } from "./services/reports";
 import multer from "multer";
 import * as path from "path";
 import * as fs from "fs";
@@ -171,19 +173,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Parse resume
-      const parsed = await parseResume(req.file.path, req.file.mimetype);
+      console.log("Parsing resume file:", req.file.originalname);
+      const resumeText = await parseResumeFile(req.file.path, req.file.mimetype);
+      
+      // Validate resume content
+      if (!validateResumeContent(resumeText)) {
+        return res.status(400).json({ 
+          message: "Resume unreadable - the uploaded file doesn't contain valid resume content" 
+        });
+      }
       
       // Create candidate
       const candidate = await storage.createCandidate({
-        name: candidateName || parsed.name || 'Unknown',
-        email: candidateEmail || parsed.email || '',
-        phone: parsed.phone,
-        resumeText: parsed.text,
+        name: candidateName || 'Unknown Candidate',
+        email: candidateEmail || '',
+        phone: '',
+        resumeText: resumeText,
         resumeUrl: req.file.path,
       });
 
       // Analyze resume with AI
-      const analysis = await analyzeResume(parsed.text, job.description);
+      console.log("Analyzing resume with Gemini AI...");
+      const analysis = await analyzeResume(resumeText, job.description);
+      console.log(`Analysis completed. Match score: ${analysis.matchScore}`);
 
       // Create application
       const application = await storage.createApplication({
@@ -196,6 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         interviewQuestions: analysis.interviewQuestions,
         status: analysis.matchScore >= 70 ? 'qualified' : 'rejected',
       });
+
+      // Create notification for new candidate
+      createCandidateNotification(candidate.name, job.title, analysis.matchScore);
 
       // Auto-schedule interview or send rejection based on score
       if (analysis.matchScore >= 70 && candidate.email) {
@@ -382,6 +397,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Notifications endpoints
+  app.get("/api/notifications", async (req, res) => {
+    try {
+      const notifications = getNotifications();
+      const unreadCount = getUnreadCount();
+      res.json({ notifications, unreadCount });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.post("/api/notifications/:id/read", async (req, res) => {
+    try {
+      const success = markAsRead(req.params.id);
+      res.json({ success });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.post("/api/notifications/read-all", async (req, res) => {
+    try {
+      markAllAsRead();
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Report generation endpoint
+  app.get("/api/reports/candidates", async (req, res) => {
+    try {
+      const reportData = await generateCandidateReport();
+      const csvContent = formatReportAsCSV(reportData);
+      
+      const filename = `candidate-report-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvContent);
+    } catch (error) {
+      console.error('Report generation error:', error);
+      res.status(500).json({ message: "Failed to generate report" });
     }
   });
 

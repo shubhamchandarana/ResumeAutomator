@@ -1,0 +1,65 @@
+🧠 PROJECT CONTEXT:
+I’m building an AI-based Recruitment Automation web app using React (with Material UI) and Python backend (FastAPI or Flask). It uses Google Gemini API (Key: AIzaSyBX4ymp0-oBgrqX_U58yUUmz31evZBoe60) to compare candidate resumes with job descriptions and give a match score.
+
+🧩 FIX ALL THESE ISSUES BELOW (FRONTEND + BACKEND):
+
+1. ✅ “Create New Job” is not working – fix the form submission, API call, and DB save logic.
+
+2. ❌ Resume uploads always return score `0` and are rejected.
+   - Use `pdfplumber`, `PyMuPDF`, or fallback methods to extract resume content.
+   - Make sure resume text is parsed and used to create prompt for Gemini.
+   - Send a prompt like:
+     ```
+     Compare the following resume to this job description. Output match score (0–100), strengths, weaknesses, and summary.
+
+     Job Description: {JD}
+     Resume: {Parsed Text}
+     ```
+   - Parse Gemini’s response correctly.
+   - If no text is extracted → show error: “Resume unreadable.”
+   - If score ≥ 70%, mark as qualified.
+
+3. 📧 Clicking “Send Email” shows success toast, but doesn’t send actual mail.
+   - Fix backend logic with `smtplib`, `SendGrid`, or `NodeMailer`.
+   - Add error logging if mail fails to send.
+   - Ensure proper subject/body formatting (include candidate name, interview date, summary, etc.)
+
+4. 🛠 “Schedule Interview” does NOT schedule anything.
+   - Integrate Google Calendar API properly with OAuth or service account.
+   - After click, create event and save meeting link.
+   - Fix logic to pass correct time, duration, and participant email.
+
+5. 📝 “Edit Active Job” not working – fix the job update API & make sure frontend pre-fills existing data and saves updated values correctly.
+
+6. 👤 “Profile” and ⚙️ “Settings” pages do not open – fix routes and render correct React components.
+
+7. 🔕 Notification icon not working – clicking it should show latest candidate updates or system messages (can be placeholder data for now).
+
+8. 📊 “Generate Report” button not working – clicking it should download a CSV or PDF with candidate name, match score, and summary.
+
+9. 🧠 AI Match Score always stuck at zero
+   - Fix Gemini request & parsing
+   - Return float match score (0–100), strengths/weaknesses list, summary text
+   - Store this in DB and show in frontend
+   - Example:
+     ```json
+     {
+       "score": 82,
+       "strengths": ["Python", "Machine Learning"],
+       "weaknesses": ["No cloud experience"],
+       "summary": "Candidate meets most job requirements."
+     }
+     ```
+
+🔐 GEMINI API KEY:
+Use this key securely: `AIzaSyBX4ymp0-oBgrqX_U58yUUmz31evZBoe60`
+
+🧪 TEST CASE:
+- Job Description: Python Developer with 2+ years of experience in NLP, APIs, Flask.
+- Resume: Provided PDF includes relevant experience.
+- Expected: Gemini should give score ~80%, list relevant skills, and pass candidate.
+
+📦 DB Tables Expected:
+- `jobs`: id, title, description, created_at
+- `candidates`: id, name, email, resume_text, score, strengths, weaknesses, summary
+- `interviews`: id, candidate_id, job_id, scheduled_time, meeting_link
